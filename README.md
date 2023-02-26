@@ -10,7 +10,7 @@ The package can be installed by adding `build_dot_zig` to your list of dependenc
 ```elixir
 def deps do
   [
-    {:build_dot_zig, github: "rbino/build_dot_zig", runtime: false}
+    {:build_dot_zig, "~> 0.1.0", runtime: false}
   ]
 end
 ```
