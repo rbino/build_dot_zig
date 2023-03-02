@@ -18,7 +18,8 @@ defmodule BuildDotZig.Compiler do
   end
 
   def build(config) do
-    exec = Keyword.get(config, :build_dot_zig_executable, "zig")
+    exec = Keyword.get(config, :build_dot_zig_executable, :default) |> exec()
+
     app_path = Mix.Project.app_path(config)
     mix_target = Mix.target()
     install_prefix = "#{app_path}/priv/#{mix_target}"
@@ -49,6 +50,14 @@ defmodule BuildDotZig.Compiler do
 
   defp raise_build_error(exec, exit_status) do
     Mix.raise("Could not compile with #{exec} (exit status: #{exit_status}).\n")
+  end
+
+  defp exec(:default) do
+    "zig"
+  end
+
+  defp exec(path) when is_binary(path) do
+    path
   end
 
   defp build_args(install_prefix) do
