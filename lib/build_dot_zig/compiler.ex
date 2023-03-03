@@ -23,7 +23,8 @@ defmodule BuildDotZig.Compiler do
     app_path = Mix.Project.app_path(config)
     mix_target = Mix.target()
     install_prefix = "#{app_path}/priv/#{mix_target}"
-    args = build_args(install_prefix)
+    build_path = Mix.Project.build_path(config)
+    args = build_args(install_prefix, build_path)
     env = default_env(config)
 
     case cmd(exec, args, env) do
@@ -60,12 +61,20 @@ defmodule BuildDotZig.Compiler do
     path
   end
 
-  defp build_args(install_prefix) do
-    ["build"] ++ install_prefix_args(install_prefix)
+  defp build_args(install_prefix, build_path) do
+    ["build"] ++ install_prefix_args(install_prefix) ++ cache_dir_args(build_path)
   end
 
   defp install_prefix_args(install_prefix) do
     ["-p", install_prefix]
+  end
+
+  defp cache_dir_args(build_path) do
+    ["--cache-dir", cache_dir(build_path)]
+  end
+
+  defp cache_dir(build_path) do
+    Path.join(build_path, "zig-cache")
   end
 
   # Returns a map of default environment variables
