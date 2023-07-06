@@ -1,60 +1,42 @@
 defmodule BuildDotZig.HTTP do
-  alias Mint.HTTP
+  def get!(url) do
+    request_timeout = 15_000
 
-  @zig_website_host "ziglang.org"
+    http_opts = build_http_opts(request_timeout)
+    opts = [body_format: :binary]
+    request = {url, []}
 
-  def connect! do
-    opts = [transport_opts: [cacertfile: CAStore.file_path()]]
-
-    case HTTP.connect(:https, @zig_website_host, 443, opts) do
-      {:ok, conn} -> conn
-      {:error, reason} -> Mix.raise("Could not connect to Zig website: #{reason}")
-    end
+    :httpc.request(:get, request, http_opts, opts)
+    |> handle_response()
   end
 
-  def close(conn) do
-    {:ok, _conn} = HTTP.close(conn)
-
-    :ok
+  defp build_http_opts(timeout) do
+    [
+      timeout: timeout,
+      relaxed: true,
+      ssl: build_ssl_opts()
+    ]
   end
 
-  def get!(conn, path, timeout \\ 5_000) do
-    case HTTP.request(conn, "GET", path, [], nil) do
-      {:ok, conn, ref} -> loop(conn, ref, "", timeout, false)
-    end
+  defp build_ssl_opts do
+    [
+      verify: :verify_peer,
+      depth: 4,
+      cacertfile: CAStore.file_path(),
+      secure_renegotiate: true,
+      reuse_sessions: true,
+      customize_hostname_check: [
+        match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+      ]
+    ]
   end
 
-  defp loop(conn, _ref, body_acc, _timeout, true = _done) do
-    {conn, body_acc}
+  defp handle_response({:ok, {{_version, code, _reason}, _headers, body}})
+       when code >= 200 and code < 300 do
+    body
   end
 
-  defp loop(conn, ref, body_acc, timeout, done) do
-    receive do
-      msg ->
-        case HTTP.stream(conn, msg) do
-          {:ok, conn, responses} ->
-            {body_acc, done} =
-              Enum.reduce(responses, {body_acc, done}, &handle_response(ref, &1, &2))
-
-            loop(conn, ref, body_acc, timeout, done)
-
-          :unknown ->
-            loop(conn, ref, body_acc, timeout, done)
-        end
-    after
-      timeout -> Mix.raise("HTTP request timed out")
-    end
-  end
-
-  defp handle_response(ref, {:data, ref, new_data}, {body_acc, false = done}) do
-    {[body_acc | new_data], done}
-  end
-
-  defp handle_response(ref, {:done, ref}, {body_acc, false = _done}) do
-    {body_acc, true}
-  end
-
-  defp handle_response(_ref, _other, acc) do
-    acc
+  defp handle_response({:error, reason}) do
+    Mix.raise("HTTP request failed: #{inspect(reason)}")
   end
 end

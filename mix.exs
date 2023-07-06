@@ -19,14 +19,13 @@ defmodule BuildDotZig.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:ssl, :inets, :logger]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:mint, "~> 1.5"},
       {:castore, "~> 1.0"},
       {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.20", only: :docs}

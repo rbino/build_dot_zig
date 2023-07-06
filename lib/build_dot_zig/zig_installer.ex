@@ -6,10 +6,9 @@ defmodule BuildDotZig.ZigInstaller do
   def fetch_zig!(build_root, zig_version) do
     zig_target = zig_target()
 
-    conn = HTTP.connect!()
-
-    {conn, body} = HTTP.get!(conn, "/download/index.json")
-    info = Jason.decode!(body)
+    info =
+      HTTP.get!("https://ziglang.org/download/index.json")
+      |> Jason.decode!()
 
     actual_version = actual_version(info, zig_version)
 
@@ -17,16 +16,11 @@ defmodule BuildDotZig.ZigInstaller do
 
     tarball_url = tarball_url(info, zig_version, zig_target)
 
-    download_and_extract(conn, build_root, tarball_url)
+    download_and_extract(build_root, tarball_url)
   end
 
-  defp download_and_extract(conn, build_root, tarball_url) do
-    %URI{path: tarball_path} =
-      tarball_url
-      |> URI.parse()
-
-    {conn, tarball} = HTTP.get!(conn, tarball_path)
-    HTTP.close(conn)
+  defp download_and_extract(build_root, tarball_url) do
+    tarball = HTTP.get!(tarball_url)
 
     tarball_filename = Path.join(build_root, Path.basename(tarball_url))
     tarball_directory = Path.join(build_root, Path.basename(tarball_url, ".tar.xz"))
