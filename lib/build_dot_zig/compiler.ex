@@ -1,4 +1,8 @@
 defmodule BuildDotZig.Compiler do
+  alias BuildDotZig.ZigInstaller
+
+  @latest_stable_zig "0.10.1"
+
   def compile do
     config = Mix.Project.config()
     Mix.shell().print_app()
@@ -18,7 +22,15 @@ defmodule BuildDotZig.Compiler do
   end
 
   def build(config) do
-    exec = Keyword.get(config, :build_dot_zig_executable, :default) |> exec()
+    build_root = Keyword.get(config, :build_path, "_build")
+    local? = Keyword.get(config, :build_dot_zig_use_local_zig, false)
+
+    zig_version = Keyword.get(config, :build_dot_zig_force_zig_version, :default) |> zig_version()
+
+    maybe_fetch_zig!(local?, build_root, zig_version)
+
+    executable = Keyword.get(config, :build_dot_zig_executable, "zig")
+    exec = exec(local?, executable, build_root)
 
     app_path = Mix.Project.app_path(config)
     mix_target = Mix.target()
@@ -53,12 +65,16 @@ defmodule BuildDotZig.Compiler do
     Mix.raise("Could not compile with #{exec} (exit status: #{exit_status}).\n")
   end
 
-  defp exec(:default) do
-    "zig"
+  defp exec(_local = true, exec, _build_root) do
+    System.find_executable(exec) ||
+      Mix.raise("""
+      "#{exec}" not found in the path. If you have set the :build_dot_zig_executable \
+      variable, please make sure it is correct.
+      """)
   end
 
-  defp exec(path) when is_binary(path) do
-    path
+  defp exec(_local = false, _exec, build_root) do
+    downloaded_zig_exec_path(build_root)
   end
 
   defp build_args(install_prefix, build_path) do
@@ -117,5 +133,37 @@ defmodule BuildDotZig.Compiler do
 
   defp env(var, default) do
     System.get_env(var) || default
+  end
+
+  defp maybe_fetch_zig!(true = _local?, _build_root, _zig_version) do
+    # Local Zig, no need to fetch
+    :ok
+  end
+
+  defp maybe_fetch_zig!(false = _local?, build_root, zig_version) do
+    if zig_already_downloaded?(build_root) do
+      :ok
+    else
+      ZigInstaller.fetch_zig!(build_root, zig_version)
+    end
+  end
+
+  defp zig_version(:default), do: @latest_stable_zig
+  defp zig_version(other) when is_binary(other), do: other
+
+  defp zig_already_downloaded?(build_root) do
+    path =
+      build_root
+      |> downloaded_zig_exec_path()
+
+    case System.find_executable(path) do
+      nil -> false
+      _ -> true
+    end
+  end
+
+  defp downloaded_zig_exec_path(build_root) do
+    Path.join([build_root, "zig", "zig"])
+    |> Path.expand()
   end
 end
