@@ -66,4 +66,9 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
   def run(_args) do
     BuildDotZig.Compiler.compile()
   end
+
+  @doc false
+  def clean do
+    BuildDotZig.Compiler.clean()
+  end
 end

@@ -3,7 +3,7 @@ defmodule BuildDotZig.ZigInstaller do
 
   alias BuildDotZig.HTTP
 
-  def fetch_zig!(build_root, zig_version) do
+  def fetch_zig!(priv_dir, zig_version) do
     zig_target = zig_target()
 
     info =
@@ -16,22 +16,22 @@ defmodule BuildDotZig.ZigInstaller do
 
     tarball_url = tarball_url(info, zig_version, zig_target)
 
-    download_and_extract(build_root, tarball_url)
+    download_and_extract(priv_dir, tarball_url)
   end
 
-  defp download_and_extract(build_root, tarball_url) do
+  defp download_and_extract(priv_dir, tarball_url) do
     tarball = HTTP.get!(tarball_url)
 
-    tarball_filename = Path.join(build_root, Path.basename(tarball_url))
-    tarball_directory = Path.join(build_root, Path.basename(tarball_url, ".tar.xz"))
+    tarball_filename = Path.join(priv_dir, Path.basename(tarball_url))
+    tarball_directory = Path.join(priv_dir, Path.basename(tarball_url, ".tar.xz"))
 
     File.write!(tarball_filename, tarball)
 
-    {_, 0} = System.cmd("tar", ["-xf", tarball_filename, "-C", build_root])
+    {_, 0} = System.cmd("tar", ["-xf", tarball_filename, "-C", priv_dir])
 
     File.rm!(tarball_filename)
 
-    File.rename!(tarball_directory, Path.join(build_root, "zig"))
+    File.rename!(tarball_directory, Path.join(priv_dir, "zig"))
   end
 
   defp actual_version(info, "master") do
