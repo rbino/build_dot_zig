@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Clean Zig cache on `mix.clean`.
+- Add functionality to automatically download the `zig` toolchain, also with a specific version.
+
+### Changed
+
+- BREAKING: rename `:build_dot_zig_executable` option to `:zig_executable`.
 
 ## [0.1.1] - 2023-03-03
 

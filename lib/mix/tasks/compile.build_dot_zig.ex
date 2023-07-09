@@ -11,16 +11,26 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
   `mix.exs`; for example:
 
       def project() do
-        [app: :myapp,
-         build_dot_zig_executable: "zig",
-         compilers: [:build_dot_zig] ++ Mix.compilers,
-         deps: deps()]
+        [
+          app: :myapp,
+          install_zig: "0.10.1",
+          compilers: [:build_dot_zig] ++ Mix.compilers,
+          deps: deps()
+        ]
       end
 
   The following options are available:
 
-    * `:build_dot_zig_executable` - (binary or `:default`) it's the executable to use as the `zig`
-    program. If not provided or if `:default`, it defaults to `"zig"`.
+    * `:install_zig` - (binary or boolean) determines if a Zig installation should be automatically
+    downloaded and installed locally in the build directory. If `false`, no Zig installation is
+    downloaded. If `true` (default), the latest Zig stable version is downloaded. Otherwise, it's
+    possible to pass a specific Zig version, e.g. `install_zig: "0.9.1"`.
+    * `:zig_executable` - (binary or `:default`) it's the executable to use as the `zig`
+    program. If not provided or if `:default`, it defaults to the downloaded `zig` binary if
+    the `install_zig` was configured to download Zig, otherwise it defaults to `zig` (it assumes
+    to find it in the `PATH`). Note that it's possible to both install a downloaded Zig installation
+    _and_ pass a local `:zig_executable`. This is useful for use cases where the downloaded Zig
+    installation must be called through some wrapper script.
 
   ## Default environment variables
 
@@ -40,6 +50,7 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
   * `ERTS_INCLUDE_DIR`
   * `ERL_INTERFACE_LIB_DIR`
   * `ERL_INTERFACE_INCLUDE_DIR`
+  * `ZIG_INSTALL_DIR` - the directory where the Zig toolchain was downloaded, if it was.
 
   ## Compilation artifacts and working with priv directories
 

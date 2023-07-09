@@ -1,4 +1,8 @@
 defmodule BuildDotZig.Compiler do
+  alias BuildDotZig.ZigInstaller
+
+  @latest_stable_zig "0.10.1"
+
   def compile do
     config = Mix.Project.config()
     Mix.shell().print_app()
@@ -26,14 +30,25 @@ defmodule BuildDotZig.Compiler do
   end
 
   def build(config) do
-    exec = Keyword.get(config, :build_dot_zig_executable, :default) |> exec()
+    downloaded_zig_install_dir =
+      Keyword.get(config, :install_zig, true)
+      |> zig_download_version()
+      |> ensure_downloaded_zig!()
+
+    downloaded_zig_exec = downloaded_zig_exec(downloaded_zig_install_dir)
+
+    explicit_exec = Keyword.get(config, :zig_executable, :default)
+    exec = exec(explicit_exec, downloaded_zig_exec)
 
     app_path = Mix.Project.app_path(config)
     mix_target = Mix.target()
     install_prefix = "#{app_path}/priv/#{mix_target}"
     build_path = Mix.Project.build_path(config)
     args = build_args(install_prefix, build_path)
-    env = default_env(config)
+
+    env =
+      default_env(config)
+      |> maybe_add_zig_install_dir(downloaded_zig_install_dir)
 
     case cmd(exec, args, env) do
       0 ->
@@ -61,12 +76,34 @@ defmodule BuildDotZig.Compiler do
     Mix.raise("Could not compile with #{exec} (exit status: #{exit_status}).\n")
   end
 
-  defp exec(:default) do
-    "zig"
+  defp zig_install_prefix do
+    :code.priv_dir(:build_dot_zig) |> to_string()
   end
 
-  defp exec(path) when is_binary(path) do
-    path
+  defp zig_download_version(_install = false), do: nil
+  defp zig_download_version(_install = true), do: @latest_stable_zig
+  defp zig_download_version(version) when is_binary(version), do: version
+
+  defp exec(explicit_exec, _downloaded_zig_exec) when is_binary(explicit_exec) do
+    explicit_exec
+    |> Path.expand()
+    |> System.find_executable() ||
+      Mix.raise("""
+      "#{explicit_exec}" not found in the path. If you have set the :zig_executable \
+      variable, please make sure it is correct.
+      """)
+  end
+
+  defp exec(:default, :not_downloaded = _downloaded_zig_exec) do
+    System.find_executable("zig") ||
+      Mix.raise("""
+      "zig not found in the path. If you set :install_zig to false, you have \
+      to manully install zig in your system and add it to the PATH.
+      """)
+  end
+
+  defp exec(:default, downloaded_zig_exec) when is_binary(downloaded_zig_exec) do
+    downloaded_zig_exec
   end
 
   defp build_args(install_prefix, build_path) do
@@ -123,7 +160,45 @@ defmodule BuildDotZig.Compiler do
     }
   end
 
+  defp maybe_add_zig_install_dir(env, :not_downloaded), do: env
+
+  defp maybe_add_zig_install_dir(env, install_dir) when is_binary(install_dir) do
+    # Add an env variable that points to the downloaded Zig install dir
+    Map.put(env, "ZIG_INSTALL_DIR", install_dir)
+  end
+
   defp env(var, default) do
     System.get_env(var) || default
+  end
+
+  defp ensure_downloaded_zig!(nil = _zig_version) do
+    # If zig_version is nil, we just return :not_downloaded as install dir
+    :not_downloaded
+  end
+
+  defp ensure_downloaded_zig!(zig_version) when is_binary(zig_version) do
+    prefix = zig_install_prefix()
+
+    # Avoid that multiple applications looking to install the same Zig version stomp on each others
+    # feet by using a version-scoped lock
+    lock_id = {__MODULE__, zig_version}
+
+    :global.set_lock(lock_id)
+
+    if not ZigInstaller.installed?(prefix, zig_version) do
+      ZigInstaller.install!(prefix, zig_version)
+    end
+
+    :global.del_lock(lock_id)
+
+    ZigInstaller.install_dir(prefix, zig_version)
+  end
+
+  defp downloaded_zig_exec(:not_downloaded), do: :not_downloaded
+
+  defp downloaded_zig_exec(downloaded_zig_install_dir) do
+    Path.join(downloaded_zig_install_dir, "zig")
+    |> System.find_executable() ||
+      Mix.raise("zig executable not found in #{downloaded_zig_install_dir}")
   end
 end
