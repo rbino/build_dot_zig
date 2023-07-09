@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - Unreleased
 
+### Added
+
+- Clean Zig cache on `mix.clean`.
+
 ## [0.1.1] - 2023-03-03
 
 ### Fixed

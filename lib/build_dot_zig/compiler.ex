@@ -17,6 +17,14 @@ defmodule BuildDotZig.Compiler do
     {:ok, []}
   end
 
+  def clean do
+    # Remove the zig cache
+    Mix.Project.config()
+    |> Mix.Project.build_path()
+    |> cache_dir()
+    |> File.rm_rf!()
+  end
+
   def build(config) do
     exec = Keyword.get(config, :build_dot_zig_executable, :default) |> exec()
 
