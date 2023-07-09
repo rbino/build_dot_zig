@@ -31,6 +31,8 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
     to find it in the `PATH`). Note that it's possible to both install a downloaded Zig installation
     _and_ pass a local `:zig_executable`. This is useful for use cases where the downloaded Zig
     installation must be called through some wrapper script.
+    * `:zig_build_mode` - (atom) allows choosing the build mode. The supported build modes are
+    `:debug` (default), `:release_safe`, `:release_fast` and `:release_small`.
 
   ## Default environment variables
 

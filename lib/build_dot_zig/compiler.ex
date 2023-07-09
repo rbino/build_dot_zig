@@ -44,7 +44,8 @@ defmodule BuildDotZig.Compiler do
     mix_target = Mix.target()
     install_prefix = "#{app_path}/priv/#{mix_target}"
     build_path = Mix.Project.build_path(config)
-    args = build_args(install_prefix, build_path)
+    build_mode = Keyword.get(config, :zig_build_mode, :debug)
+    args = build_args(install_prefix, build_path, build_mode)
 
     env =
       default_env(config)
@@ -106,8 +107,10 @@ defmodule BuildDotZig.Compiler do
     downloaded_zig_exec
   end
 
-  defp build_args(install_prefix, build_path) do
-    ["build"] ++ install_prefix_args(install_prefix) ++ cache_dir_args(build_path)
+  defp build_args(install_prefix, build_path, build_mode) do
+    ["build"] ++
+      install_prefix_args(install_prefix) ++
+      cache_dir_args(build_path) ++ build_mode_args(build_mode)
   end
 
   defp install_prefix_args(install_prefix) do
@@ -116,6 +119,28 @@ defmodule BuildDotZig.Compiler do
 
   defp cache_dir_args(build_path) do
     ["--cache-dir", cache_dir(build_path)]
+  end
+
+  defp build_mode_args(build_mode) do
+    case build_mode do
+      :debug ->
+        []
+
+      :release_safe ->
+        ["-Drelease-safe"]
+
+      :release_fast ->
+        ["-Drelease-fast"]
+
+      :release_small ->
+        ["-Drelease-small"]
+
+      other ->
+        Mix.raise(
+          "Invalid build mode #{inspect(other)} in :zig_build_mode. " <>
+            "Should be one of: :debug, :release_safe, :release_fast, :release_small."
+        )
+    end
   end
 
   defp cache_dir(build_path) do

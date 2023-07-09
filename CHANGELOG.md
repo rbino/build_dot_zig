@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Clean Zig cache on `mix.clean`.
 - Add functionality to automatically download the `zig` toolchain, also with a specific version.
+- Allow defining the build mode from the Mix configuration.
 
 ### Changed
 
