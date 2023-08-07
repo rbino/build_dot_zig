@@ -45,7 +45,9 @@ defmodule BuildDotZig.Compiler do
     install_prefix = "#{app_path}/priv/#{mix_target}"
     build_path = Mix.Project.build_path(config)
     build_mode = Keyword.get(config, :zig_build_mode, :debug)
-    args = build_args(install_prefix, build_path, build_mode)
+    target = Keyword.get(config, :zig_target, :host)
+    cpu = Keyword.get(config, :zig_cpu, :native)
+    args = build_args(install_prefix, build_path, build_mode, target, cpu)
 
     env =
       default_env(config)
@@ -107,10 +109,11 @@ defmodule BuildDotZig.Compiler do
     downloaded_zig_exec
   end
 
-  defp build_args(install_prefix, build_path, build_mode) do
+  defp build_args(install_prefix, build_path, build_mode, target, cpu) do
     ["build"] ++
       install_prefix_args(install_prefix) ++
-      cache_dir_args(build_path) ++ build_mode_args(build_mode)
+      cache_dir_args(build_path) ++
+      build_mode_args(build_mode) ++ target_args(target) ++ cpu_args(cpu)
   end
 
   defp install_prefix_args(install_prefix) do
@@ -145,6 +148,22 @@ defmodule BuildDotZig.Compiler do
 
   defp cache_dir(build_path) do
     Path.join(build_path, "zig-cache")
+  end
+
+  defp target_args(:host) do
+    []
+  end
+
+  defp target_args(target) when is_binary(target) do
+    ["-Dtarget=#{target}"]
+  end
+
+  defp cpu_args(:native) do
+    []
+  end
+
+  defp cpu_args(cpu) when is_binary(cpu) do
+    ["-Dcpu=#{cpu}"]
   end
 
   # Returns a map of default environment variables
