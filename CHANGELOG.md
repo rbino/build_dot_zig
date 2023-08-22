@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2023-08-22
+
+### Fixed
+
+- Pass the correct option for optimize modes.
+
+### Changed
+
+- Due to the different options for the optimize modes, `:build_dot_zig` is currently only
+compatible with Zig version `0.11.0`.
+
 ## [0.3.0] - 2023-08-08
 
 ### Added

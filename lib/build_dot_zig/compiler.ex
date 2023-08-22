@@ -130,13 +130,13 @@ defmodule BuildDotZig.Compiler do
         []
 
       :release_safe ->
-        ["-Drelease-safe"]
+        ["-Doptimize=ReleaseSafe"]
 
       :release_fast ->
-        ["-Drelease-fast"]
+        ["-Doptimize=ReleaseFast"]
 
       :release_small ->
-        ["-Drelease-small"]
+        ["-Doptimize=ReleaseSmall"]
 
       other ->
         Mix.raise(

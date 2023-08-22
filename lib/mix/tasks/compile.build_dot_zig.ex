@@ -24,7 +24,13 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
     * `:install_zig` - (binary or boolean) determines if a Zig installation should be automatically
     downloaded and installed locally in the build directory. If `false`, no Zig installation is
     downloaded. If `true` (default), the latest Zig stable version is downloaded. Otherwise, it's
-    possible to pass a specific Zig version, e.g. `install_zig: "0.9.1"`.
+    possible to pass a specific Zig version, e.g. `install_zig: "0.11.0"`.
+
+    > ### Zig version support {: .warning }
+    >
+    > `:build_dot_zig` currently supports only Zig version `0.11.0` due to breaking changes
+    > to the build options passed in the command line. As long as the command line interface
+    > remains stable, it will be possible to support multiple future Zig versions.
 
     * `:zig_executable` - (binary or `:default`) it's the executable to use as the `zig`
     program. If not provided or if `:default`, it defaults to the downloaded `zig` binary if
