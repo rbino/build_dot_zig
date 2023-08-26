@@ -118,6 +118,9 @@ defmodule BuildDotZig.ZigInstaller do
     cond do
       arch =~ "x86_64" -> "x86_64"
       arch =~ "aarch64" -> "aarch64"
+      # Erlang just returns "win32" for Windows, assume it's x86_64
+      # TODO: what happens for Windows on ARM?
+      arch == "win32" -> "x86_64"
       true -> Mix.raise("Cannot determine architecture: #{arch}")
     end
   end
