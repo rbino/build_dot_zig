@@ -23,7 +23,7 @@ defmodule BuildDotZig.ZigInstaller do
 
         install_dir = install_dir(prefix, zig_version, zig_target)
 
-        download_and_extract!(prefix, url, checksum, install_dir)
+        download_and_extract!(url, checksum, install_dir)
 
       other ->
         raise_download_error!("Could not retrieve Zig download info", other)
@@ -35,7 +35,7 @@ defmodule BuildDotZig.ZigInstaller do
     |> Path.expand()
   end
 
-  defp download_and_extract!(prefix, tarball_url, checksum, install_dir) do
+  defp download_and_extract!(tarball_url, checksum, install_dir) do
     case HTTP.get(tarball_url) do
       {:ok, %{status: 200, body: tarball}} ->
         verify_checksum!(tarball, checksum)
