@@ -75,7 +75,7 @@ defmodule BuildDotZig.ZigInstaller do
 
   defp extract_zip(archive_filename, tmp) do
     {_, 0} = System.cmd("unzip", ["-d", tmp, archive_filename])
-    Path.basename(archive_filename, ".zip")
+    Path.join(tmp, Path.basename(archive_filename, ".zip"))
   end
 
   defp raise_download_error!(msg, {:ok, %{status: status, body: body}}) do
