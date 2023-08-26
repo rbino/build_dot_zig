@@ -40,24 +40,23 @@ defmodule BuildDotZig.ZigInstaller do
       {:ok, %{status: 200, body: archive}} ->
         verify_checksum!(archive, checksum)
 
-        tmp = System.tmp_dir!()
-        archive_filename = Path.join(tmp, Path.basename(archive_url))
+        archive_filename = Path.basename(archive_url)
         File.write!(archive_filename, archive)
-        extract_archive!(archive_filename, install_dir, tmp)
+        extract_archive!(archive_filename, install_dir)
 
       other ->
         raise_download_error!("Could not download Zig archive", other)
     end
   end
 
-  defp extract_archive!(archive_filename, install_dir, tmp) do
+  defp extract_archive!(archive_filename, install_dir) do
     temporary_archive_dir =
       cond do
         String.ends_with?(archive_filename, ".tar.xz") ->
-          extract_tar_xz(archive_filename, tmp)
+          extract_tar_xz(archive_filename)
 
         String.ends_with?(archive_filename, ".zip") ->
-          extract_zip(archive_filename, tmp)
+          extract_zip(archive_filename)
 
         true ->
           Mix.raise("Unsupported archive format: #{archive_filename}")
@@ -68,14 +67,14 @@ defmodule BuildDotZig.ZigInstaller do
     File.rename!(temporary_archive_dir, install_dir)
   end
 
-  defp extract_tar_xz(archive_filename, tmp) do
-    {_, 0} = System.cmd("tar", ["-xf", archive_filename, "-C", tmp])
-    Path.join(tmp, Path.basename(archive_filename, ".tar.xz"))
+  defp extract_tar_xz(archive_filename) do
+    {_, 0} = System.cmd("tar", ["-xf", archive_filename])
+    Path.basename(archive_filename, ".tar.xz")
   end
 
-  defp extract_zip(archive_filename, tmp) do
-    {_, 0} = System.cmd("unzip", ["-d", tmp, archive_filename])
-    Path.join(tmp, Path.basename(archive_filename, ".zip"))
+  defp extract_zip(archive_filename) do
+    {_, 0} = System.cmd("unzip", [archive_filename])
+    Path.basename(archive_filename, ".zip")
   end
 
   defp raise_download_error!(msg, {:ok, %{status: status, body: body}}) do
