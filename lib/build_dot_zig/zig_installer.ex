@@ -40,11 +40,12 @@ defmodule BuildDotZig.ZigInstaller do
       {:ok, %{status: 200, body: tarball}} ->
         verify_checksum!(tarball, checksum)
 
-        tarball_filename = Path.join(prefix, Path.basename(tarball_url))
-        tarball_directory = Path.join(prefix, Path.basename(tarball_url, ".tar.xz"))
+        tmp = System.tmp_dir!()
+        tarball_filename = Path.join(tmp, Path.basename(tarball_url))
+        tarball_directory = Path.join(tmp, Path.basename(tarball_url, ".tar.xz"))
 
         File.write!(tarball_filename, tarball)
-        {_, 0} = System.cmd("tar", ["-xf", tarball_filename, "-C", prefix])
+        {_, 0} = System.cmd("tar", ["-xf", tarball_filename, "-C", tmp])
         File.rm!(tarball_filename)
         File.rename!(tarball_directory, install_dir)
 
