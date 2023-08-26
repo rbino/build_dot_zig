@@ -19,7 +19,7 @@ defmodule BuildDotZig.ZigInstaller do
         actual_version = actual_version(info, zig_version)
 
         Logger.info("Downloading zig #{actual_version}...")
-        %{url: url, checksum: checksum} = tarball_url_and_checksum(info, zig_version, zig_target)
+        %{url: url, checksum: checksum} = archive_url_and_checksum(info, zig_version, zig_target)
 
         install_dir = install_dir(prefix, zig_version, zig_target)
 
@@ -35,23 +35,47 @@ defmodule BuildDotZig.ZigInstaller do
     |> Path.expand()
   end
 
-  defp download_and_extract!(tarball_url, checksum, install_dir) do
-    case HTTP.get(tarball_url) do
-      {:ok, %{status: 200, body: tarball}} ->
-        verify_checksum!(tarball, checksum)
+  defp download_and_extract!(archive_url, checksum, install_dir) do
+    case HTTP.get(archive_url) do
+      {:ok, %{status: 200, body: archive}} ->
+        verify_checksum!(archive, checksum)
 
         tmp = System.tmp_dir!()
-        tarball_filename = Path.join(tmp, Path.basename(tarball_url))
-        tarball_directory = Path.join(tmp, Path.basename(tarball_url, ".tar.xz"))
-
-        File.write!(tarball_filename, tarball)
-        {_, 0} = System.cmd("tar", ["-xf", tarball_filename, "-C", tmp])
-        File.rm!(tarball_filename)
-        File.rename!(tarball_directory, install_dir)
+        archive_filename = Path.join(tmp, Path.basename(archive_url))
+        File.write!(archive_filename, archive)
+        extract_archive!(archive_filename, install_dir, tmp)
 
       other ->
-        raise_download_error!("Could not download Zig tarball", other)
+        raise_download_error!("Could not download Zig archive", other)
     end
+  end
+
+  defp extract_archive!(archive_filename, install_dir, tmp) do
+    temporary_archive_dir =
+      cond do
+        String.ends_with?(archive_filename, ".tar.xz") ->
+          extract_tar_xz(archive_filename, tmp)
+
+        String.ends_with?(archive_filename, ".zip") ->
+          extract_zip(archive_filename, tmp)
+
+        true ->
+          Mix.raise("Unsupported archive format: #{archive_filename}")
+      end
+
+    File.rm!(archive_filename)
+
+    File.rename!(temporary_archive_dir, install_dir)
+  end
+
+  defp extract_tar_xz(archive_filename, tmp) do
+    {_, 0} = System.cmd("tar", ["-xf", archive_filename, "-C", tmp])
+    Path.join(tmp, Path.basename(archive_filename, ".tar.xz"))
+  end
+
+  defp extract_zip(archive_filename, tmp) do
+    {_, 0} = System.cmd("unzip", ["-d", tmp, archive_filename])
+    Path.basename(archive_filename, ".zip")
   end
 
   defp raise_download_error!(msg, {:ok, %{status: status, body: body}}) do
@@ -62,9 +86,9 @@ defmodule BuildDotZig.ZigInstaller do
     Mix.raise("#{msg} (reason #{inspect(reason)})")
   end
 
-  defp verify_checksum!(tarball, expected_checksum) do
+  defp verify_checksum!(archive, expected_checksum) do
     actual_checksum =
-      :crypto.hash(:sha256, tarball)
+      :crypto.hash(:sha256, archive)
       |> Base.encode16(case: :lower)
 
     if actual_checksum != expected_checksum do
@@ -84,7 +108,7 @@ defmodule BuildDotZig.ZigInstaller do
     zig_version
   end
 
-  defp tarball_url_and_checksum(info, zig_version, zig_target) do
+  defp archive_url_and_checksum(info, zig_version, zig_target) do
     version_map =
       Map.get(info, zig_version) ||
         Mix.raise("Version #{zig_version} not found in Zig build index")
