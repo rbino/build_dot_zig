@@ -1,7 +1,8 @@
 # A `build.zig` compiler for Mix
 
 This package aims to be similar to [`elixir_make`](https://github.com/elixir-lang/elixir_make) (from
-which it takes lots of inspiration) but for projects based on Zig as a buildsystem, instead of Make.
+which it takes lots of inspiration) but for projects based on Zig as a build system, instead of
+Make.
 
 ## Usage
 
@@ -10,7 +11,7 @@ The package can be installed by adding `build_dot_zig` to your list of dependenc
 ```elixir
 def deps do
   [
-    {:build_dot_zig, "~> 0.1.0", runtime: false}
+    {:build_dot_zig, "~> 0.3.0", runtime: false}
   ]
 end
 ```
@@ -22,10 +23,20 @@ Still in your `mix.exs` file, you will need to add `:build_dot_zig` to your list
 compilers: [:build_dot_zig] ++ Mix.compilers,
 ```
 
-And that's it.
+If you're starting a new C NIF from scratch, you can use the Mix generator to bootstrap it. Run:
 
-Note that for this to work you should have `zig` in your path, in the future it's possible this
-library will also automatically download the `zig` compiler.
+```console
+mix help build_dot_zig.gen.c_nif
+```
+
+to read the documentation of the generator. You can also use the output of the generator as
+inspiration to replace an existing build system for a NIF with the Zig build system.
+
+The appropriate `zig` binary will be automatically downloaded and used to run the `build.zig`
+builder.
+
+For more information about what you can do with the Zig build system, read the [Zig build system
+guide](https://ziglang.org/learn/build-system).
 
 ## License
 
