@@ -11,7 +11,7 @@ The package can be installed by adding `build_dot_zig` to your list of dependenc
 ```elixir
 def deps do
   [
-    {:build_dot_zig, "~> 0.3.0", runtime: false}
+    {:build_dot_zig, "~> 0.4.0", runtime: false}
   ]
 end
 ```
