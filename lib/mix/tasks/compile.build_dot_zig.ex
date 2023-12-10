@@ -40,7 +40,8 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
     installation must be called through some wrapper script.
 
     * `:zig_build_mode` - (atom) allows choosing the build mode. The supported build modes are
-    `:debug` (default), `:release_safe`, `:release_fast` and `:release_small`.
+    `:debug`, `:release_safe`, `:release_fast` and `:release_small`. By default the build mode
+    is `:release_safe` when `Mix.env()` is `:prod` and `:debug` in all other cases.
 
     * `:zig_target` - (binary or `:host`) it's the target that will be passed with the
     `-Dtarget` flag to `zig`. This can be used to support cross-compilation. If not provided or if

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Use `:release_safe` build mode by default in `:prod` env. Leave `:debug` as default in all other
+  cases.
+
 ### Fixed
 
 - Fix arch detection on Windows.

@@ -44,7 +44,7 @@ defmodule BuildDotZig.Compiler do
     mix_target = Mix.target()
     install_prefix = "#{app_path}/priv/#{mix_target}"
     build_path = Mix.Project.build_path(config)
-    build_mode = Keyword.get(config, :zig_build_mode, :debug)
+    build_mode = Keyword.get(config, :zig_build_mode, default_build_mode(Mix.env()))
     target = Keyword.get(config, :zig_target, :host)
     cpu = Keyword.get(config, :zig_cpu, :native)
     args = build_args(install_prefix, build_path, build_mode, target, cpu)
@@ -61,6 +61,9 @@ defmodule BuildDotZig.Compiler do
         raise_build_error(exec, exit_status)
     end
   end
+
+  defp default_build_mode(:prod), do: :release_safe
+  defp default_build_mode(_), do: :debug
 
   # Runs `zig build` and prints the stdout and stderr in real time,
   # as soon as `exec` prints them (using `IO.Stream`).
