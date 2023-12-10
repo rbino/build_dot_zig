@@ -47,7 +47,8 @@ defmodule BuildDotZig.Compiler do
     build_mode = Keyword.get(config, :zig_build_mode, default_build_mode(Mix.env()))
     target = Keyword.get(config, :zig_target, :host)
     cpu = Keyword.get(config, :zig_cpu, :native)
-    args = build_args(install_prefix, build_path, build_mode, target, cpu)
+    extra_options = Keyword.get(config, :zig_extra_options, [])
+    args = build_args(install_prefix, build_path, build_mode, target, cpu, extra_options)
 
     env =
       default_env(config)
@@ -112,11 +113,12 @@ defmodule BuildDotZig.Compiler do
     downloaded_zig_exec
   end
 
-  defp build_args(install_prefix, build_path, build_mode, target, cpu) do
+  defp build_args(install_prefix, build_path, build_mode, target, cpu, extra_options) do
     ["build"] ++
       install_prefix_args(install_prefix) ++
       cache_dir_args(build_path) ++
-      build_mode_args(build_mode) ++ target_args(target) ++ cpu_args(cpu)
+      build_mode_args(build_mode) ++
+      target_args(target) ++ cpu_args(cpu) ++ extra_option_args(extra_options)
   end
 
   defp install_prefix_args(install_prefix) do
@@ -167,6 +169,12 @@ defmodule BuildDotZig.Compiler do
 
   defp cpu_args(cpu) when is_binary(cpu) do
     ["-Dcpu=#{cpu}"]
+  end
+
+  defp extra_option_args(extra_options) when is_list(extra_options) do
+    for {k, v} <- extra_options do
+      "-D#{k}=#{v}"
+    end
   end
 
   # Returns a map of default environment variables

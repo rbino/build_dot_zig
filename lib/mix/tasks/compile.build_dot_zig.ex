@@ -52,6 +52,10 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
     makes `zig` use _all_ the CPU features of the host. If you're not running the compiled code on
     the same machine where you're compiling, setting this to `"baseline"` is a good starting point.
 
+    * `:zig_extra_options` - (keyword list) if you define additional options in your `build.zig`
+    using `b.option()`, you can pass the values of those options here (e.g.
+    `[some_option: "some_value"]`).
+
   ## Default environment variables
 
   This compiler also sets deveral default environment variables which are accessible
