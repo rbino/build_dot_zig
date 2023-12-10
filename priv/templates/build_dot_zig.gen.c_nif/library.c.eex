@@ -1,0 +1,14 @@
+#include <erl_nif.h>
+<%= for {name, _} <- Enum.dedup_by(nif.functions, fn {name, _arity} -> name end) do %>
+static ERL_NIF_TERM <%= name %>(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    // TODO: implement NIF
+    return enif_raise_exception(env, enif_make_atom(env, "not_implemented"));
+}
+<% end %>
+static ErlNifFunc nif_funcs[] =
+{<%= for {name, arity} <- nif.functions do %>
+    {"<%= name %>", <%= arity %>, <%= name %>},<% end %>
+};
+
+ERL_NIF_INIT(<%= to_string(nif.module) %>, nif_funcs, NULL, NULL, NULL, NULL)

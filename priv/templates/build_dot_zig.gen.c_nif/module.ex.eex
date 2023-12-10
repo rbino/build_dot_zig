@@ -1,0 +1,14 @@
+defmodule <%= inspect nif.module %> do
+  @on_load :load_nif
+  @nif_path "priv/#{Mix.target()}/lib/<%= nif.library %>"
+
+  defp load_nif do
+    Application.app_dir(<%= inspect nif.otp_app %>, @nif_path)
+    |> String.to_charlist()
+    |> :erlang.load_nif(0)
+  end
+<%= for {name, arity} <- nif.functions do %>
+  def <%= name %><%= Mix.BuildDotZig.render_parameter_placeholders(arity) %> do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+<% end %>end

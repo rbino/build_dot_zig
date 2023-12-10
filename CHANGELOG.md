@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `mix build_dot_zig.gen.c_nif` Mix generator.
+
 ### Changed
 
 - Use `:release_safe` build mode by default in `:prod` env. Leave `:debug` as default in all other
