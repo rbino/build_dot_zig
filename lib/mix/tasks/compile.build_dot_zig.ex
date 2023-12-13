@@ -13,7 +13,6 @@ defmodule Mix.Tasks.Compile.BuildDotZig do
       def project() do
         [
           app: :myapp,
-          install_zig: "0.10.1",
           compilers: [:build_dot_zig] ++ Mix.compilers,
           deps: deps()
         ]
