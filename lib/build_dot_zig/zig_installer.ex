@@ -73,7 +73,12 @@ defmodule BuildDotZig.ZigInstaller do
   end
 
   defp extract_zip(archive_filename) do
-    {_, 0} = System.cmd("unzip", [archive_filename])
+    # windows needs a charlist path
+    archive_filename_charlist =
+      archive_filename
+      |> to_charlist()
+
+    {:ok, _} = :zip.unzip(archive_filename_charlist)
     Path.basename(archive_filename, ".zip")
   end
 
