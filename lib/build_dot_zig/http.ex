@@ -3,9 +3,10 @@ defmodule BuildDotZig.HTTP do
 
   # Extremely minimal HTTP client to download the Zig build index and compiler using :httpc
   def get(url) do
+    request_timeout = 60_000 * 5
     request_connect_timeout = 30_000
 
-    http_opts = build_http_opts(request_connect_timeout)
+    http_opts = build_http_opts(request_timeout, request_connect_timeout)
     opts = [body_format: :binary]
     request = {url, []}
 
@@ -18,8 +19,9 @@ defmodule BuildDotZig.HTTP do
     end
   end
 
-  defp build_http_opts(connect_timeout) do
+  defp build_http_opts(timeout, connect_timeout) do
     [
+      timeout: timeout,
       connect_timeout: connect_timeout,
       relaxed: true,
       ssl: build_ssl_opts()
