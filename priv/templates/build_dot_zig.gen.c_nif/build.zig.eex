@@ -29,7 +29,7 @@ pub fn build(b: *std.Build) void {
             "-noshell",
         };
 
-        break :blk b.exec(&argv);
+        break :blk b.run(&argv);
     };
 
     const lib = b.addSharedLibrary(.{
@@ -39,11 +39,11 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
     });
     lib.addCSourceFile(.{
-        .file = .{ .path = "<%= nif.library_file %>" },
+        .file = .{ .src_path = .{ .owner = b, .sub_path = "<%= nif.library_file %>" } },
         // Here you can pass a comma separated list of C flags, e.g. `&.{"-std=c17", ...}`
         .flags = &.{},
     });
-    lib.addSystemIncludePath(.{ .path = erts_include_dir });
+    lib.addSystemIncludePath(.{ .cwd_relative = erts_include_dir });
     // This is needed to avoid errors on MacOS when loading the NIF
     lib.linker_allow_shlib_undefined = true;
 
@@ -51,8 +51,8 @@ pub fn build(b: *std.Build) void {
     // as suffix also on MacOS, since it's required by the NIF loading mechanism.
     // See https://github.com/ziglang/zig/issues/2231
     // Windows still needs the .dll suffix
-    const lib_name = if (target.isWindows()) "<%= nif.library %>.dll" else "<%= nif.library %>.so";
-    const nif_so_install = b.addInstallFileWithDir(lib.getOutputSource(), .lib, lib_name);
+    const lib_name = if (target.result.os.tag == .windows) "<%= nif.library %>.dll" else "<%= nif.library %>.so";
+    const nif_so_install = b.addInstallFileWithDir(lib.getEmittedBin(), .lib, lib_name);
     nif_so_install.step.dependOn(&lib.step);
     b.getInstallStep().dependOn(&nif_so_install.step);
 }

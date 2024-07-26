@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0-dev] - Unreleased
 
+- Bump default Zig version to `0.13.0` and make the generated `build.zig` compatible with it.
+
 ## [0.4.2] - 2023-12-13
 
 ### Fixed
