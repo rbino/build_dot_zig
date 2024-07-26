@@ -11,7 +11,7 @@ The package can be installed by adding `build_dot_zig` to your list of dependenc
 ```elixir
 def deps do
   [
-    {:build_dot_zig, "~> 0.4.2", runtime: false}
+    {:build_dot_zig, "~> 0.5.0", runtime: false}
   ]
 end
 ```
@@ -20,7 +20,7 @@ Still in your `mix.exs` file, you will need to add `:build_dot_zig` to your list
 `project/0`:
 
 ```
-compilers: [:build_dot_zig] ++ Mix.compilers,
+compilers: [:build_dot_zig] ++ Mix.compilers(),
 ```
 
 If you're starting a new C NIF from scratch, you can use the Mix generator to bootstrap it. Run:
