@@ -1,7 +1,7 @@
 defmodule BuildDotZig.Compiler do
   alias BuildDotZig.ZigInstaller
 
-  @latest_stable_zig "0.14.1"
+  @latest_stable_zig "0.15.1"
 
   def compile do
     config = Mix.Project.config()
